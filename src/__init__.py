@@ -8,6 +8,7 @@ from .schema import (
     QueryRequest,
     QueryResponse,
 )
+from .evidence import EvidenceManager
 from .retrieval import ColQwenRetriever
 from .understanding import QwenVLAnalyzer
 from .pipeline.rag_pipeline import MultimodalRAGPipeline
@@ -26,6 +27,7 @@ __all__ = [
     "QueryResponse",
     "ColQwenRetriever",
     "QwenVLAnalyzer",
+    "EvidenceManager",
     "DocumentIndexer",
     "convert_pdf_to_images",
     "MultimodalRAGPipeline",

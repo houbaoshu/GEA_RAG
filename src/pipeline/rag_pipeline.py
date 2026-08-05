@@ -39,20 +39,34 @@ class MultimodalRAGPipeline:
             query=request.question, retrieval_output=retrieval_output
         )
 
-        # 3. 构造 Sources 引用列表
-        sources = [
-            {
-                "page": item.page.page_number,
-                "document": item.page.document_id,
-                "image_path": item.page.image_path,
-                "score": item.score,
-            }
-            for item in retrieval_output.results
-        ]
+        # 3. 构造 Sources 引用列表及对应 Evidence 附件信息
+        sources = []
+        for idx, item in enumerate(retrieval_output.results):
+            evidence_item = (
+                qa_result.evidences[idx] if idx < len(qa_result.evidences) else None
+            )
+            sources.append(
+                {
+                    "page": item.page.page_number,
+                    "document": item.page.document_id,
+                    "image_path": item.page.image_path,
+                    "score": item.score,
+                    "cropped_image_path": (
+                        evidence_item.cropped_image_path if evidence_item else None
+                    ),
+                    "annotated_image_path": (
+                        evidence_item.annotated_image_path if evidence_item else None
+                    ),
+                    "region": (
+                        evidence_item.region if evidence_item else None
+                    ),
+                }
+            )
 
         return QueryResponse(
             answer=qa_result.answer,
             sources=sources,
+            evidences=qa_result.evidences,
             retrieval_output=retrieval_output,
             qa_result=qa_result,
         )

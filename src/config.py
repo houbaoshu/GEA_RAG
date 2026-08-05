@@ -9,6 +9,7 @@ class AppConfig(BaseModel):
     pdf_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parent.parent / "data" / "pdf")
     pages_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parent.parent / "data" / "pages")
     index_path: Path = Field(default_factory=lambda: Path(__file__).resolve().parent.parent / "data" / "index.pt")
+    evidence_dir: Path = Field(default_factory=lambda: Path(__file__).resolve().parent.parent / "data" / "evidence")
 
     model_name: str = "athrael-soju/colqwen3.5-4.5B-v3"
     qwen_vl_model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct"
@@ -17,10 +18,11 @@ class AppConfig(BaseModel):
     batch_size: int | None = None  # None 时自动判别 (CUDA=8, MPS/CPU=4)
 
     def ensure_directories(self) -> None:
-        """确保数据相关目录存在"""
+        """确保数据与证据相关目录存在"""
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.pdf_dir.mkdir(parents=True, exist_ok=True)
         self.pages_dir.mkdir(parents=True, exist_ok=True)
+        self.evidence_dir.mkdir(parents=True, exist_ok=True)
 
 
 config = AppConfig()

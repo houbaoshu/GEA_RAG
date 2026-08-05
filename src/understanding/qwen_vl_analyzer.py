@@ -19,8 +19,9 @@ INDUSTRIAL_SYSTEM_PROMPT = """你是一个专业的工业文档与图纸分析�
 分析要求：
 1. 仔细阅读提供的文档页面图片，严格根据图片中的视觉信息（文本、表格数值、尺寸标注、部件标签等）回答用户问题。
 2. 对于表格数据，请准确对应行列指标与数值；对于图纸或尺寸参数，请指明具体的尺寸数字及单位（如 mm, m³/h, kW, bar 等）。
-3. 请在回答最后简要说明引用的关键页码与对应区域类型（如：参数表、安装尺寸图等）。
-4. 如果提供的图片中找不到问题的答案，请明确回答：“提供的文档页面中未查找到相关信息。”
+3. 如果你在图片中定位到了关键回答区域（如特定图纸框、表格或说明文字），请在回答中附带坐标框定位，格式为：[ymin, xmin, ymax, xmax]（0-1000 归一化比例）。
+4. 请在回答最后简要说明引用的关键页码与对应区域类型（如：参数表、安装尺寸图等）。
+5. 如果提供的图片中找不到问题的答案，请明确回答：“提供的文档页面中未查找到相关信息。”
 """
 
 
@@ -79,8 +80,11 @@ class QwenVLAnalyzer:
         system_prompt: Optional[str] = None,
     ) -> QAAnalysisResult:
         """
-        根据检索到的 Top-K 页面图片和用户提问，调用 Qwen-VL 进行视觉理解与回答生成。
+        根据检索到的 Top-K 页面图片和用户提问，调用 Qwen-VL 进行视觉理解与回答生成，
+        并通过 EvidenceManager 构建持久化视觉证据对象。
         """
+        from src.evidence.evidence_manager import EvidenceManager
+
         system_prompt = system_prompt or INDUSTRIAL_SYSTEM_PROMPT
 
         if not retrieval_output.results:
@@ -88,6 +92,7 @@ class QwenVLAnalyzer:
                 answer="提供的文档页面中未查找到相关信息。",
                 evidence_page=None,
                 evidence_region=None,
+                evidences=[],
                 raw_response="Empty retrieval results.",
             )
 
@@ -101,12 +106,19 @@ class QwenVLAnalyzer:
         else:
             raw_answer = self._analyze_api(query, image_paths, system_prompt)
 
-        return QAAnalysisResult(
+        # 调用 EvidenceManager 解析坐标并生成裁剪图/红框标注图
+        evidence_mgr = EvidenceManager(self.cfg)
+        result_obj = QAAnalysisResult(
             answer=raw_answer,
             evidence_page=evidence_page,
             evidence_region="Top-K Relevant Pages Context",
+            evidences=[],
             raw_response=raw_answer,
         )
+        evidences = evidence_mgr.process_rag_evidence(retrieval_output, result_obj)
+        result_obj.evidences = evidences
+
+        return result_obj
 
     def _analyze_local(
         self, query: str, image_paths: List[str], system_prompt: str
