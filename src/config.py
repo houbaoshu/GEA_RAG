@@ -23,6 +23,7 @@ class AppConfig(BaseModel):
 
     model_name: str = "athrael-soju/colqwen3.5-4.5B-v3"
     qwen_vl_model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct"
+    qwen_vl_api_model_name: str = "qwen-vl-max"
     qwen_vl_backend: str = "local"  # "local" 或 "api"
     dpi: int = 150
     batch_size: int | None = None  # None 时自动判别 (CUDA=8, MPS/CPU=4)

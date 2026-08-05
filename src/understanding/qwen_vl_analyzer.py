@@ -38,8 +38,15 @@ class QwenVLAnalyzer:
         backend: Optional[str] = None,
     ):
         self.cfg = app_config
-        self.model_name = model_name or self.cfg.qwen_vl_model_name
         self.backend = backend or self.cfg.qwen_vl_backend
+        if model_name:
+            self.model_name = model_name
+        else:
+            self.model_name = (
+                self.cfg.qwen_vl_api_model_name
+                if self.backend == "api"
+                else self.cfg.qwen_vl_model_name
+            )
         self.device, self.dtype = get_device_and_dtype()
 
         self.model = None
@@ -183,7 +190,7 @@ class QwenVLAnalyzer:
         content.append({"type": "text", "text": query})
 
         response = self.api_client.chat.completions.create(
-            model=self.model_name if "qwen" in self.model_name.lower() else "qwen-vl-max",
+            model=self.model_name,
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": content},
