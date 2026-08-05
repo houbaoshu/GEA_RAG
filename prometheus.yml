@@ -1,0 +1,7 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'gea_rag_api'
+    static_configs:
+      - targets: ['gea-rag-api:8000']

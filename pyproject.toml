@@ -7,9 +7,13 @@ requires-python = ">=3.11"
 dependencies = [
     "accelerate",
     "colpali-engine>=0.3.0",
+    "fastapi>=0.100.0",
+    "httpx>=0.24.0",
     "pdf2image",
     "pillow",
+    "prometheus-client>=0.17.0",
     "pydantic>=2.0.0",
     "torch",
     "transformers",
+    "uvicorn[standard]>=0.20.0",
 ]

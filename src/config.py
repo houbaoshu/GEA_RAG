@@ -17,6 +17,13 @@ class AppConfig(BaseModel):
     dpi: int = 150
     batch_size: int | None = None  # None 时自动判别 (CUDA=8, MPS/CPU=4)
 
+    # 工业 API 部署配置 (Milestone 5)
+    gea_api_key: str = Field(
+        default_factory=lambda: __import__("os").getenv("GEA_API_KEY", "gea-industrial-secret-key")
+    )
+    api_host: str = "0.0.0.0"
+    api_port: int = 8000
+
     def ensure_directories(self) -> None:
         """确保数据与证据相关目录存在"""
         self.data_dir.mkdir(parents=True, exist_ok=True)

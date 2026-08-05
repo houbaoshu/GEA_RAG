@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  gea-rag-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gea_rag_industrial_api
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - GEA_API_KEY=gea-industrial-secret-key
+      - GEA_HOST=0.0.0.0
+      - GEA_PORT=8000
+      - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - ./data:/app/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: gea_rag_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - gea-rag-api
