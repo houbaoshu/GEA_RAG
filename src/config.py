@@ -1,5 +1,15 @@
+import os
 from pathlib import Path
 from pydantic import BaseModel, Field
+
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+    demo_env = Path("/Users/houbaoshu/workspace/gea-colpali-demo/.env")
+    if demo_env.exists():
+        load_dotenv(demo_env)
+except Exception:
+    pass
 
 
 class AppConfig(BaseModel):

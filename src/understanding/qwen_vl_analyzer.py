@@ -62,10 +62,10 @@ class QwenVLAnalyzer:
             except ImportError:
                 raise ImportError("使用 API 模式请确保已安装 openai 库: pip install openai")
 
-            api_key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("OPENAI_API_KEY")
+            api_key = os.getenv("DASHSCOPE_API_KEY") or os.getenv("QWEN_API_KEY") or os.getenv("OPENAI_API_KEY")
             if not api_key:
                 raise ValueError(
-                    "❌ 未找到 API Key！请设置 DASHSCOPE_API_KEY 或 OPENAI_API_KEY 环境变量。"
+                    "❌ 未找到 API Key！请在 .env 中或环境变量中设置 DASHSCOPE_API_KEY 或 QWEN_API_KEY。"
                 )
 
             base_url = os.getenv(
