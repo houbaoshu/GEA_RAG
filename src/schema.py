@@ -72,3 +72,31 @@ class QueryResponse(BaseModel):
     retrieval_output: RetrievalOutput = Field(description="Milestone 1 检索输出详情")
     qa_result: QAAnalysisResult = Field(description="Milestone 2 视觉理解详细分析结果")
 
+
+class ToolCallStep(BaseModel):
+    """Agent 执行单步工具调用记录 (Milestone 4 Agent System)"""
+    step_number: int = Field(description="1-based 步骤序号")
+    thought: str = Field(description="Agent 本步决策推导思路")
+    tool_name: str = Field(description="调用的工具名称")
+    arguments: dict[str, Any] = Field(default_factory=dict, description="传递给工具的入参字典")
+    observation: Any = Field(default=None, description="工具执行观察结果")
+    status: str = Field(default="success", description="执行状态: 'success' 或 'error'")
+    evidences: List[Evidence] = Field(default_factory=list, description="本步骤收集到的视觉证据")
+
+
+class AgentTaskRequest(BaseModel):
+    """Agent Task 请求体 (ARCHITECTURE.md Section 8)"""
+    task_description: str = Field(description="用户复杂的工业工程任务描述")
+    max_steps: int = Field(default=5, description="允许的最大 ReAct 步数")
+
+
+class AgentTaskResponse(BaseModel):
+    """Agent Task 响应体 (ARCHITECTURE.md Section 8)"""
+    task_description: str = Field(description="原始用户任务描述")
+    status: str = Field(description="任务执行状态: 'completed', 'failed', 'max_steps_exceeded'")
+    plan: List[str] = Field(default_factory=list, description="Agent 生成的分解工作流步骤清单")
+    execution_trace: List[ToolCallStep] = Field(default_factory=list, description="Tool 工具调用的详细推导与观察日志")
+    report: Optional[str] = Field(default=None, description="生成的最终 Markdown 工业产品工程评估报告")
+    evidences: List[Evidence] = Field(default_factory=list, description="全流程汇总收集的视觉证据链")
+
+
