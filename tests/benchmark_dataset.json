@@ -92,7 +92,7 @@
     "question": "离心泵首次启动前，电机点动确认转向必须与泵体上标注的什么指示一致？",
     "expected_value": "箭头",
     "expected_unit": "指示",
-    "target_document": "3",
+    "target_document": "1",
     "target_page": 28,
     "target_bbox": [
       200,
@@ -100,8 +100,8 @@
       800,
       900
     ],
-    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/3_page_0028.png",
-    "target_doc": "3.pdf",
+    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/1_page_0028.png",
+    "target_doc": "1.pdf",
     "ground_truth_bbox": [
       200,
       100,
@@ -114,7 +114,7 @@
     "question": "离心泵启动前为了防止损坏机械密封，严禁在什么状态下运行？",
     "expected_value": "空转",
     "expected_unit": "干运转",
-    "target_document": "3",
+    "target_document": "1",
     "target_page": 28,
     "target_bbox": [
       200,
@@ -122,8 +122,8 @@
       800,
       900
     ],
-    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/3_page_0028.png",
-    "target_doc": "3.pdf",
+    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/1_page_0028.png",
+    "target_doc": "1.pdf",
     "ground_truth_bbox": [
       200,
       100,
@@ -136,7 +136,7 @@
     "question": "泵配备双端面机械密封时，在启动前必须先开启什么水？",
     "expected_value": "冲洗水",
     "expected_unit": "冷却水",
-    "target_document": "3",
+    "target_document": "1",
     "target_page": 38,
     "target_bbox": [
       200,
@@ -144,8 +144,8 @@
       800,
       900
     ],
-    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/3_page_0038.png",
-    "target_doc": "3.pdf",
+    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/1_page_0038.png",
+    "target_doc": "1.pdf",
     "ground_truth_bbox": [
       200,
       100,
@@ -246,7 +246,7 @@
     "question": "进出口管路安装时，管道的重量是否可以直接施加在泵法兰接口上？",
     "expected_value": "严禁",
     "expected_unit": "支撑",
-    "target_document": "3",
+    "target_document": "1",
     "target_page": 28,
     "target_bbox": [
       200,
@@ -254,8 +254,8 @@
       800,
       900
     ],
-    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/3_page_0028.png",
-    "target_doc": "3.pdf",
+    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/1_page_0028.png",
+    "target_doc": "1.pdf",
     "ground_truth_bbox": [
       200,
       100,
@@ -378,7 +378,7 @@
     "question": "泵轴承箱推荐的润滑维护与换油周期是多少运行小时？",
     "expected_value": "4000",
     "expected_unit": "小时",
-    "target_document": "3",
+    "target_document": "1",
     "target_page": 38,
     "target_bbox": [
       200,
@@ -386,8 +386,8 @@
       800,
       900
     ],
-    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/3_page_0038.png",
-    "target_doc": "3.pdf",
+    "image_path": "/Users/houbaoshu/workspace/GEA_RAG/data/pages/1_page_0038.png",
+    "target_doc": "1.pdf",
     "ground_truth_bbox": [
       200,
       100,
