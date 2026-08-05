@@ -114,3 +114,37 @@ def draw_bounding_box_overlay(
         img.save(out_path)
 
     return out_path.resolve()
+
+
+def calculate_iou(bbox1: List[int], bbox2: List[int]) -> float:
+    """
+    计算两个 2D 矩形框 [x1, y1, x2, y2] 的交并比 (Intersection over Union, IoU)。
+
+    :param bbox1: 矩形框 1 像素坐标 [x1, y1, x2, y2]
+    :param bbox2: 矩形框 2 像素坐标 [x1, y1, x2, y2]
+    :return: IoU 得分 (0.0 ~ 1.0)
+    """
+    if not bbox1 or not bbox2 or len(bbox1) != 4 or len(bbox2) != 4:
+        return 0.0
+
+    b1_x1, b1_y1, b1_x2, b1_y2 = bbox1
+    b2_x1, b2_y1, b2_x2, b2_y2 = bbox2
+
+    inter_x1 = max(b1_x1, b2_x1)
+    inter_y1 = max(b1_y1, b2_y1)
+    inter_x2 = min(b1_x2, b2_x2)
+    inter_y2 = min(b1_y2, b2_y2)
+
+    inter_w = max(0, inter_x2 - inter_x1)
+    inter_h = max(0, inter_y2 - inter_y1)
+    inter_area = inter_w * inter_h
+
+    area1 = max(0, b1_x2 - b1_x1) * max(0, b1_y2 - b1_y1)
+    area2 = max(0, b2_x2 - b2_x1) * max(0, b2_y2 - b2_y1)
+
+    union_area = area1 + area2 - inter_area
+    if union_area <= 0:
+        return 0.0
+
+    return round(inter_area / union_area, 4)
+
