@@ -5,9 +5,9 @@ from pydantic import BaseModel, Field
 try:
     from dotenv import load_dotenv
     load_dotenv()
-    demo_env = Path("/Users/houbaoshu/workspace/gea-colpali-demo/.env")
-    if demo_env.exists():
-        load_dotenv(demo_env)
+    env_file = Path(__file__).resolve().parent.parent / ".env"
+    if env_file.exists():
+        load_dotenv(env_file)
 except Exception:
     pass
 
@@ -24,7 +24,9 @@ class AppConfig(BaseModel):
     model_name: str = "athrael-soju/colqwen3.5-4.5B-v3"
     qwen_vl_model_name: str = "Qwen/Qwen2.5-VL-3B-Instruct"
     qwen_vl_api_model_name: str = "qwen-vl-max"
-    qwen_vl_backend: str = "local"  # "local" 或 "api"
+    qwen_vl_backend: str = Field(
+        default_factory=lambda: __import__("os").getenv("QWEN_VL_BACKEND", "local")
+    )  # "local" 或 "api"
     dpi: int = 150
     batch_size: int | None = None  # None 时自动判别 (CUDA=8, MPS/CPU=4)
 

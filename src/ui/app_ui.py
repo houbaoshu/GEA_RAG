@@ -21,25 +21,27 @@ def get_pipeline() -> MultimodalRAGPipeline:
     if _pipeline_instance is None:
         import os
 
-        print("\n🚀 正在预热加载 MultimodalRAGPipeline 单例引擎 (API 后端模式)...")
+        print(f"\n🚀 正在预热加载 MultimodalRAGPipeline 单例引擎 ({config.qwen_vl_backend.upper()} 后端模式)...")
         config.ensure_directories()
-        config.qwen_vl_backend = "api"
 
-        # 校验 API Key 状态
-        api_key = (
-            os.getenv("DASHSCOPE_API_KEY")
-            or os.getenv("QWEN_API_KEY")
-            or os.getenv("OPENAI_API_KEY")
-        )
-        if api_key:
-            masked_key = (
-                api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
+        if config.qwen_vl_backend == "api":
+            # 校验 API Key 状态
+            api_key = (
+                os.getenv("DASHSCOPE_API_KEY")
+                or os.getenv("QWEN_API_KEY")
+                or os.getenv("OPENAI_API_KEY")
             )
-            print(f"🔑 已检测并激活 Qwen-VL API 密钥: {masked_key}")
+            if api_key:
+                masked_key = (
+                    api_key[:6] + "..." + api_key[-4:] if len(api_key) > 10 else "***"
+                )
+                print(f"🔑 已检测并激活 Qwen-VL API 密钥: {masked_key}")
+            else:
+                print(
+                    "⚠️ 未检测到 DASHSCOPE_API_KEY / QWEN_API_KEY，请检查 .env 或环境变量配置！"
+                )
         else:
-            print(
-                "⚠️ 未检测到 DASHSCOPE_API_KEY / QWEN_API_KEY，请检查 .env 或环境变量配置！"
-            )
+            print(f"🍏 已激活本地 Qwen-VL 视觉理解模型: {config.qwen_vl_model_name}")
 
         _pipeline_instance = MultimodalRAGPipeline(app_config=config)
         print("✅ 流水线引擎加载完成！\n")

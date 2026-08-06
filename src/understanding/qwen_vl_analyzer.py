@@ -111,7 +111,13 @@ class QwenVLAnalyzer:
         if self.backend == "local":
             raw_answer = self._analyze_local(query, image_paths, system_prompt)
         else:
-            raw_answer = self._analyze_api(query, image_paths, system_prompt)
+            try:
+                raw_answer = self._analyze_api(query, image_paths, system_prompt)
+            except (ValueError, Exception) as e:
+                print(f"⚠️ API 模式不可用 ({e})，正在自动切换回本地 Qwen-VL 模型 ({self.cfg.qwen_vl_model_name})...")
+                self.backend = "local"
+                self.model_name = self.cfg.qwen_vl_model_name
+                raw_answer = self._analyze_local(query, image_paths, system_prompt)
 
         # 调用 EvidenceManager 解析坐标并生成裁剪图/红框标注图
         evidence_mgr = EvidenceManager(self.cfg)
