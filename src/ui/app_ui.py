@@ -14,6 +14,44 @@ from src.pipeline.rag_pipeline import MultimodalRAGPipeline
 # 单例全局 MultimodalRAGPipeline
 _pipeline_instance: Optional[MultimodalRAGPipeline] = None
 
+def get_index_status_str() -> str:
+    """获取当前的 PDF、图片与索引库状态统计"""
+    pdf_dir = config.pdf_dir
+    pages_dir = config.pages_dir
+    index_path = config.index_path
+
+    pdf_count = len(list(pdf_dir.glob("*.pdf"))) if pdf_dir.exists() else 0
+    pages_count = len(list(pages_dir.glob("*.png"))) if pages_dir.exists() else 0
+
+    indexed_count = 0
+    if index_path.exists():
+        try:
+            import torch
+            index_data = torch.load(index_path, map_location="cpu", weights_only=False)
+            indexed_count = len(index_data.get("image_paths", []))
+        except Exception:
+            indexed_count = 0
+
+    return (
+        f"📄 PDF 数量: {pdf_count} 个 | "
+        f"🖼️ 页面图片: {pages_count} 张 | "
+        f"🔍 已索引页数: {indexed_count} 页"
+    )
+
+
+def rebuild_index_ui() -> str:
+    """Web UI 中刷新/重建索引的回调逻辑"""
+    from src.pipeline.indexer import DocumentIndexer
+    try:
+        pipeline = get_pipeline()
+        print("🔄 正在从 Web UI 触发重新扫描 PDF 与构建索引...")
+        indexer = DocumentIndexer(config)
+        indexer.build_index(force_rebuild=True)
+        pipeline.retriever.load_index()
+        return f"🎉 索引重建成功！\n{get_index_status_str()}"
+    except Exception as e:
+        return f"❌ 索引重建失败: {e}"
+
 
 def get_pipeline() -> MultimodalRAGPipeline:
     """获取 MultimodalRAGPipeline 单例实例，避免每次提问重复初始化模型"""
@@ -108,6 +146,15 @@ def create_ui() -> gr.Blocks:
         with gr.Row():
             # 左侧控制栏
             with gr.Column(scale=1):
+                gr.Markdown("### 📚 文档与索引状态")
+                status_box = gr.Textbox(
+                    label="当前索引数据统计",
+                    value=get_index_status_str(),
+                    interactive=False,
+                    lines=2,
+                )
+                rebuild_btn = gr.Button("🔄 扫描 PDF 并重建索引", variant="secondary")
+
                 gr.Markdown("### 🔍 提问与控制面板")
                 question_input = gr.Textbox(
                     label="工业提问 / 参数查询",
@@ -169,6 +216,13 @@ def create_ui() -> gr.Blocks:
                             height="auto",
                             object_fit="contain",
                         )
+
+        # 触发重建索引事件
+        rebuild_btn.click(
+            fn=rebuild_index_ui,
+            inputs=[],
+            outputs=[status_box],
+        )
 
         # 触发提交事件
         submit_btn.click(

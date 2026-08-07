@@ -26,22 +26,37 @@ class ColQwenRetriever:
     def load_index(self, index_path: Path | None = None) -> None:
         """加载多向量索引文件"""
         target_path = index_path or self.cfg.index_path
+        indexer = DocumentIndexer(self.cfg)
 
+        # 如果索引不存在，尝试创建
         if not target_path.exists():
-            indexer = DocumentIndexer(self.cfg)
             target_path = indexer.ensure_index_exists()
 
-        print(f"📂 加载 ColQwen 多向量索引文件: {target_path.resolve()}")
-        index_data = torch.load(target_path, map_location="cpu", weights_only=False)
+        if target_path.exists():
+            print(f"📂 加载 ColQwen 多向量索引文件: {target_path.resolve()}")
+            index_data = torch.load(target_path, map_location="cpu", weights_only=False)
 
-        raw_image_names = index_data["image_paths"]
-        self.page_embeddings = index_data["embeddings"]
-        self.model_name = index_data.get("model_name", self.cfg.model_name)
+            raw_image_names = index_data.get("image_paths", [])
+            self.page_embeddings = index_data.get("embeddings", [])
+            self.model_name = index_data.get("model_name", self.cfg.model_name)
 
-        # 映射图片路径
-        self.image_paths = [self.cfg.pages_dir / Path(name).name for name in raw_image_names]
+            # 映射图片路径
+            self.image_paths = [self.cfg.pages_dir / Path(name).name for name in raw_image_names]
 
-        print(f"✅ 索引库加载完成，共 {len(self.image_paths)} 页，模型: {self.model_name}")
+            # 自动检测：如果索引为空，但 pdf 目录中有 PDF 文件，则自动转换 PDF 并重建索引
+            pdf_files = list(self.cfg.pdf_dir.glob("*.pdf")) if self.cfg.pdf_dir.exists() else []
+            if len(self.page_embeddings) == 0 and len(pdf_files) > 0:
+                print(f"⚠️ 检测到索引为空但存在 {len(pdf_files)} 个 PDF 文件，正在启动自动转换与建库...")
+                target_path = indexer.build_index(force_rebuild=True)
+                index_data = torch.load(target_path, map_location="cpu", weights_only=False)
+                raw_image_names = index_data.get("image_paths", [])
+                self.page_embeddings = index_data.get("embeddings", [])
+                self.image_paths = [self.cfg.pages_dir / Path(name).name for name in raw_image_names]
+
+        if len(self.page_embeddings) == 0:
+            print("⚠️ 注意: 当前索引库为空（未检索到 PDF 文档或页面图片）。请将 PDF 放入 data/pdf 目录并构建索引。")
+        else:
+            print(f"✅ 索引库加载完成，共 {len(self.image_paths)} 页，模型: {self.model_name}")
 
         # 延迟/初始化加载 ColQwen 模型与 Processor
         if self.model is None or self.processor is None:
@@ -61,6 +76,15 @@ class ColQwenRetriever:
             raise RuntimeError("❌ Retriever 模型尚未初始化，请先调用 load_index()")
 
         print(f"\n🔍 检索查询: '{query}'")
+
+        if len(self.page_embeddings) == 0:
+            print("⚠️ 索引库当前为空，直接返回空结果。")
+            return RetrievalOutput(
+                query=query,
+                top_k=top_k,
+                results=[],
+                total_pages_searched=0,
+            )
 
         # 1. 提取 Query 多向量特征
         with torch.no_grad():

@@ -32,6 +32,7 @@ def parse_page_metadata(image_path: Path | str) -> tuple[str, int]:
 def resolve_pdf_files(
     pdf_target: Path | str | list[Path | str] | None = None,
     pdf_dir: Path | None = None,
+    allow_empty: bool = False,
 ) -> list[Path]:
     """解析 PDF 文件列表"""
     target_pdf_dir = pdf_dir or config.pdf_dir
@@ -52,6 +53,8 @@ def resolve_pdf_files(
             elif target_path.is_file():
                 pdf_files = [target_path]
             elif not target_path.exists():
+                if allow_empty:
+                    return []
                 raise FileNotFoundError(f"❌ 指定的路径不存在: {target_path}")
             else:
                 pdf_files = []
@@ -59,6 +62,8 @@ def resolve_pdf_files(
         pdf_files = sorted(list(target_pdf_dir.glob("*.pdf"))) if target_pdf_dir.exists() else []
 
     if not pdf_files:
+        if allow_empty:
+            return []
         raise FileNotFoundError(
             f"❌ 未找到任何可处理的 PDF 文件！\n"
             f"💡 请将 PDF 文件放入 {target_pdf_dir} 目录或指定 pdf_target。"
@@ -66,6 +71,8 @@ def resolve_pdf_files(
 
     for pdf_file in pdf_files:
         if not pdf_file.exists():
+            if allow_empty:
+                continue
             raise FileNotFoundError(f"❌ PDF 文件不存在: {pdf_file}")
 
     return pdf_files
@@ -73,8 +80,10 @@ def resolve_pdf_files(
 
 def convert_pdf_to_images(
     pdf_target: Path | str | list[Path | str] | None = None,
+    pdf_dir: Path | None = None,
     output_dir: Path | None = None,
     dpi: int = 150,
+    allow_empty: bool = False,
 ) -> list[Path]:
     """
     将 PDF 文件转换为 PNG 页面图片。
@@ -84,7 +93,12 @@ def convert_pdf_to_images(
     target_output_dir.mkdir(parents=True, exist_ok=True)
     resolved_output_dir = target_output_dir.resolve()
 
-    pdf_files = resolve_pdf_files(pdf_target)
+    target = pdf_target or pdf_dir
+    pdf_files = resolve_pdf_files(target, pdf_dir=pdf_dir, allow_empty=allow_empty)
+    if not pdf_files:
+        print(f"⚠️ 未找到任何 PDF 文件，跳过转换图片操作。")
+        return []
+
     print(f"📄 共找到 {len(pdf_files)} 个 PDF 文件，准备导出至: {resolved_output_dir}")
 
     is_multi_pdf = len(pdf_files) > 1
@@ -127,4 +141,4 @@ def convert_pdf_to_images(
 
     except Exception as e:
         print(f"\n❌ PDF 转换失败: {e}")
-        sys.exit(1)
+        raise RuntimeError(f"PDF 转换失败: {e}") from e

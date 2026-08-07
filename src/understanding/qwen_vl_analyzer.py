@@ -138,7 +138,12 @@ class QwenVLAnalyzer:
     ) -> str:
         """本地 HuggingFace Qwen2.5-VL 模态推理"""
         self._ensure_local_model()
-        from qwen_vl_utils import process_vision_info
+        try:
+            from qwen_vl_utils import process_vision_info
+        except ImportError:
+            raise ImportError(
+                "❌ 缺少 qwen-vl-utils 依赖包！请先执行: pip install qwen-vl-utils"
+            )
 
         content = []
         for img_path in image_paths:

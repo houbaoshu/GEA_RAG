@@ -38,12 +38,29 @@ class DocumentIndexer:
         )
 
         if not image_paths:
-            print(f"⚠️ 目录 '{self.cfg.pages_dir}' 下未找到图片，正在触发 PDF 转换...")
-            image_paths = convert_pdf_to_images(
-                pdf_dir=self.cfg.pdf_dir,
-                output_dir=self.cfg.pages_dir,
-                dpi=self.cfg.dpi,
-            )
+            print(f"⚠️ 目录 '{self.cfg.pages_dir}' 下未找到图片，正在检查 PDF 文件并触发转换...")
+            try:
+                image_paths = convert_pdf_to_images(
+                    pdf_dir=self.cfg.pdf_dir,
+                    output_dir=self.cfg.pages_dir,
+                    dpi=self.cfg.dpi,
+                    allow_empty=True,
+                )
+            except Exception as e:
+                print(f"⚠️ PDF 转换遇到异常: {e}")
+                image_paths = []
+
+        if not image_paths:
+            print(f"⚠️ 提示: 当前未找到任何可用的页面图片或 PDF 文件，将创建空索引。")
+            index_data = {
+                "image_paths": [],
+                "embeddings": [],
+                "model_name": self.cfg.model_name,
+            }
+            index_file.parent.mkdir(parents=True, exist_ok=True)
+            torch.save(index_data, index_file)
+            print(f"✅ 空索引文件已建立: {index_file.resolve()}")
+            return index_file
 
         processor, model = load_colqwen_model(self.cfg.model_name, device, dtype)
 
@@ -82,6 +99,7 @@ class DocumentIndexer:
             "model_name": self.cfg.model_name,
         }
 
+        index_file.parent.mkdir(parents=True, exist_ok=True)
         torch.save(index_data, index_file)
         print(f"\n🎉 索引构建完成！包含 {len(all_embeddings)} 页特征向量，保存至: {index_file.resolve()}")
         return index_file
