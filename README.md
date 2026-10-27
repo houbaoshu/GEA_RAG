@@ -1,11 +1,11 @@
-# GEA Multimodal Product Intelligence Agent (GEA-RAG)
+# GEA-RAG：工业多模态文档智能系统
 
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?style=flat-square&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Gradio](https://img.shields.io/badge/Gradio-4.0+-FF5500?style=flat-square&logo=gradio&logoColor=white)](https://gradio.app/)
 [![Docker](https://img.shields.io/badge/Docker-Supported-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
 
-GEA Multimodal Product Intelligence Agent 是一个基于**视觉文档检索 (Vision Space Retrieval)** 与 **视觉语言模型 (VLM)** 的工业产品智能助手。
+GEA-RAG 是一个基于**视觉文档检索 (Vision Space Retrieval)** 与 **视觉语言模型 (VLM)** 的工业产品智能助手。
 
 专为复杂工业 PDF 文档（产品手册、技术规格书、CAD 图纸、三视图、安装说明书、参数表等）设计。系统通过将 PDF 页面直接转化为视觉特征向量，避免了传统 PDF RAG 在 OCR 文本提取时导致的**表格结构丢失、图纸细节失效、矢量标注错位**等瓶颈问题。
 
@@ -16,7 +16,7 @@ GEA Multimodal Product Intelligence Agent 是一个基于**视觉文档检索 (V
 - **视觉端到端检索 (Vision Retrieval)**：集成 **ColQwen3.5** 多向量 (Multi-vector) 视觉特征提取与 Late Interaction 晚期交互比对，直接对 PDF 页面图像进行精准语义及空间检索。
 - **视觉语言深度理解 (Vision QA & Analysis)**：采用 **Qwen2.5-VL-3B-Instruct**（支持本地推理与 `qwen-vl-max` 云端 API 双后端自动降级与切换），实现对复杂 CAD 图纸、三视图尺寸、部件标注与结构表格的高精度读取与问答。
 - **可追溯视觉证据链 (Evidence System)**：生成高亮红框标注整页图（Annotated Page）与局部区域放大裁剪图（Cropped Region），支持精准的地理坐标（Bounding Box）回溯与可视化证明。
-- **工业 ReAct Agent 自主规划**：内建自主工程 Agent 运行时（Product Agent Runtime），支持复杂任务分解、工具调用（`search_product_document`, `analyze_drawing`, `extract_parameter`, `compare_products`, `generate_report`）及自动工程审查报告生成。
+- **多步工具编排工作流**：`ProductAgentRuntime` 按固定的四步流程依次调用 `search_product_document`、`analyze_drawing`、`extract_parameter` 和 `generate_report`，以“思考 → 行动 → 观察”格式记录每一步的执行轨迹，最后生成工程审查报告。工业审查场景的步骤相对固定，采用固定流程便于评测和复现；`compare_products` 工具已实现，暂未接入该流程。
 - **双端交互界面与工业部署**：
   - **Gradio Web UI**：直观的多页签可视化前端，支持参数调节、样例快捷加载与双图层证据链展示。
   - **FastAPI 工业级 RESTful API**：支持 Bearer API Key 身份鉴权、Prometheus 运维指标监控及 Docker / Docker-Compose 一键部署。
@@ -50,9 +50,9 @@ GEA_RAG/
 ├── pyproject.toml              # 项目依赖与 Python 环境配置
 ├── prometheus.yml              # Prometheus 监控采集配置
 ├── src/                        # 核心源代码目录
-│   ├── agent/                  # Milestone 4: ReAct Agent 运行时与工具链
+│   ├── agent/                  # Milestone 4: 多步工具编排工作流与工具链
 │   │   ├── runtime.py          # ProductAgentRuntime
-│   │   └── tools.py            # Agent 工具集中管理
+│   │   └── tools.py            # 工作流工具集中管理
 │   ├── api/                    # Milestone 5: FastAPI 接口与中间件
 │   │   ├── app.py              # FastAPI 应用与生命周期管理
 │   │   ├── auth.py             # API Key 鉴权中间件
@@ -194,7 +194,7 @@ python verify_milestone2.py --question "离心泵操作与安装注意事项有�
 # Milestone 3: 视觉证据链测试 (Evidence BBox & Crop)
 python verify_milestone3.py --question "离心泵安装尺寸与法兰接口规格说明"
 
-# Milestone 4: Autonomous Agent 自主任务规划测试
+# Milestone 4: 多步工具编排工作流测试
 python verify_milestone4.py --task "审查 GEA 离心泵安装尺寸，生成工程评估报告"
 
 # Milestone 5: API 接口与鉴权集成测试 (FastAPI TestClient)
@@ -256,7 +256,7 @@ python tests/eval_benchmark.py
 }
 ```
 
-### 2. Autonomous Agent 任务接口 `/api/v1/agent/task` [POST]
+### 2. 工作流任务接口 `/api/v1/agent/task` [POST]
 
 **Request Body:**
 ```json
@@ -273,7 +273,7 @@ python tests/eval_benchmark.py
 - [x] **Milestone 1**: 视觉检索核心（PDF 转图、ColQwen 多向量索引与 Late Interaction 检索）
 - [x] **Milestone 2**: 视觉问答流水线（Qwen-VL 本地/API 模式融合与结构化回答生成）
 - [x] **Milestone 3**: 视觉证据链系统（BBox 定位、全页红框高亮与细节裁剪）
-- [x] **Milestone 4**: Industrial Agent 运行时（ReAct 架构、工具链与工程报告生成）
+- [x] **Milestone 4**: 多步工具编排工作流（固定四步流程、执行轨迹记录与工程报告生成）
 - [x] **Milestone 5**: 工业级部署与监控（FastAPI 路由、Bearer 鉴权、Prometheus 监控与 Docker Compose）
 - [x] **Benchmark**: 自动化 4 大工程指标评测套件与 Web UI 前端集成
 
